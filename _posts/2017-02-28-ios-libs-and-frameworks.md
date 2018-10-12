@@ -2,7 +2,7 @@
 layout: post
 title:  "iOS Libs 与 Frameworks 的理解和使用"
 date:   2017-02-28 23:25:05 +0800
-categories: iOS
+categories: iOS Foundation
 ---
 
 (also posted on [饿了么移动组 Blog](http://mobilists.eleme.io/2017/02/28/iOS-Libs-与-Frameworks-的理解和使用/))
