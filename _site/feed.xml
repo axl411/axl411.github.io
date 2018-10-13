@@ -1,6 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.4">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2018-10-12T12:45:12+09:00</updated><id>/feed.xml</id><title type="html">axl411</title><entry><title type="html">封装一个 Thread Safe 的 Property</title><link href="/swift/ios/concurrency/2018/10/12/thread-safe-property-utility.html" rel="alternate" type="text/html" title="封装一个 Thread Safe 的 Property" /><published>2018-10-12T12:17:05+09:00</published><updated>2018-10-12T12:17:05+09:00</updated><id>/swift/ios/concurrency/2018/10/12/thread-safe-property-utility</id><content type="html" xml:base="/swift/ios/concurrency/2018/10/12/thread-safe-property-utility.html">&lt;p&gt;我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.8.4">Jekyll</generator><link href="/feed.xml" rel="self" type="application/atom+xml" /><link href="/" rel="alternate" type="text/html" /><updated>2018-10-13T23:02:25+09:00</updated><id>/feed.xml</id><title type="html">axl411</title><entry><title type="html">Swift 下各种 Locking Mechanism 的封装及性能比较</title><link href="/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison.html" rel="alternate" type="text/html" title="Swift 下各种 Locking Mechanism 的封装及性能比较" /><published>2018-10-12T12:17:05+09:00</published><updated>2018-10-12T12:17:05+09:00</updated><id>/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison</id><content type="html" xml:base="/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison.html">&lt;p&gt;我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。&lt;/p&gt;
 
-&lt;p&gt;首先封装一下 lock api：&lt;/p&gt;
+&lt;h1 id=&quot;封装-lock-api&quot;&gt;封装 Lock api&lt;/h1&gt;
+
+&lt;p&gt;首先封装一下 lock api，以 unfair lock 为例：&lt;/p&gt;
 
 &lt;div class=&quot;language-swift highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;UnfairLock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
     &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;unfairLock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;os_unfair_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
@@ -25,6 +27,8 @@
 &lt;span class=&quot;k&quot;&gt;defer&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;span class=&quot;c1&quot;&gt;// do critical things safely&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;封装线程安全的-property&quot;&gt;封装线程安全的 property&lt;/h1&gt;
 
 &lt;p&gt;然后，我们进一步地封装一个 &lt;code class=&quot;highlighter-rouge&quot;&gt;LockedPropertyWrapper&lt;/code&gt;：&lt;/p&gt;
 
@@ -91,7 +95,83 @@
 &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
 
-&lt;p&gt;这样，我们就能像普通的 property 一样去使用我们的线程安全的 property 了。&lt;/p&gt;</content><author><name></name></author><summary type="html">我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。</summary></entry><entry><title type="html">iOS Libs 与 Frameworks 的理解和使用</title><link href="/ios/foundation/2017/03/01/ios-libs-and-frameworks.html" rel="alternate" type="text/html" title="iOS Libs 与 Frameworks 的理解和使用" /><published>2017-03-01T00:25:05+09:00</published><updated>2017-03-01T00:25:05+09:00</updated><id>/ios/foundation/2017/03/01/ios-libs-and-frameworks</id><content type="html" xml:base="/ios/foundation/2017/03/01/ios-libs-and-frameworks.html">&lt;p&gt;(also posted on &lt;a href=&quot;http://mobilists.eleme.io/2017/02/28/iOS-Libs-与-Frameworks-的理解和使用/&quot;&gt;饿了么移动组 Blog&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;这样，我们就能像普通的 property 一样去使用它了。&lt;/p&gt;
+
+&lt;p&gt;⚠️ 需要注意的是，我们的 &lt;code class=&quot;highlighter-rouge&quot;&gt;LockedPropertyWrapper.value&lt;/code&gt; 以及 &lt;code class=&quot;highlighter-rouge&quot;&gt;myProperty&lt;/code&gt; 实现的只是 atomic，对它们的操作并不能保证线程安全。例如，从多个线程同时执行 &lt;code class=&quot;highlighter-rouge&quot;&gt;myProperty += 1&lt;/code&gt; 是线程不安全的，因为这实际上是两个操作：读和写。要确保线程安全，还是需要用 &lt;code class=&quot;highlighter-rouge&quot;&gt;setValue(_:)&lt;/code&gt; 或者 &lt;code class=&quot;highlighter-rouge&quot;&gt;mutateValue(_:)&lt;/code&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;其他各种-locking-mechanism-的封装&quot;&gt;其他各种 locking mechanism 的封装&lt;/h1&gt;
+
+&lt;p&gt;用上文同样的思路我们可以封装其他 lock 的 api 如下：&lt;/p&gt;
+
+&lt;div class=&quot;language-swift highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;Lock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;nsLock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;NSLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nsLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nsLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;RecrusiveLock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;nsLock&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;NSRecursiveLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nsLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nsLock&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;MutexLock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;mutexLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pthread_mutex_t&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;var&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;mutex&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pthread_mutex_t&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+        &lt;span class=&quot;nf&quot;&gt;pthread_mutex_init&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutex&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;kc&quot;&gt;nil&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mutex&lt;/span&gt;
+    &lt;span class=&quot;p&quot;&gt;}()&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pthread_mutex_lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutexLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;pthread_mutex_unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;mutexLock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;ObjcSyncLock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;obj&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;NSObject&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;objc_sync_enter&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;objc_sync_exit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;obj&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;final&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;SemaphoreLock&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;private&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;let&lt;/span&gt; &lt;span class=&quot;nv&quot;&gt;sem&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;kt&quot;&gt;DispatchSemaphore&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;lock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;wait&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;kd&quot;&gt;public&lt;/span&gt; &lt;span class=&quot;kd&quot;&gt;func&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;unlock&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;sem&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nf&quot;&gt;signal&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;当然我们还可以用 &lt;code class=&quot;highlighter-rouge&quot;&gt;DispatchQueue&lt;/code&gt; 的 &lt;code class=&quot;highlighter-rouge&quot;&gt;sync&lt;/code&gt; 来实现 locking。&lt;/p&gt;
+
+&lt;h1 id=&quot;各种-locking-mechanism-的性能比较&quot;&gt;各种 locking mechanism 的性能比较&lt;/h1&gt;
+
+&lt;p&gt;我准备了&lt;a href=&quot;https://github.com/axl411/LockingMethodsComparison&quot;&gt;一段代码&lt;/a&gt;来测试各种 locking mechanism 的性能，方式是用3个线程同时对一个线程安全的 counter 增1 各300000次。测试结果如下：&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;+++++ UnfairLock +++++
+    ✅ elapsed time: 0.43625009059906006
+
++++++ ObjcSyncLock +++++
+    ✅ elapsed time: 0.45990192890167236
+
++++++ MutexLock +++++
+    ✅ elapsed time: 1.0517339706420898
+
++++++ Lock +++++
+    ✅ elapsed time: 1.0154080390930176
+
++++++ RecrusiveLock +++++
+    ✅ elapsed time: 1.3077090978622437
+
++++++ SemaphoreLock +++++
+    ✅ elapsed time: 5.190653085708618
+
++++++ SyncQueue +++++
+    ✅ elapsed time: 7.316784024238586
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;结论：&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;能用 &lt;code class=&quot;highlighter-rouge&quot;&gt;os_unfair_lock&lt;/code&gt; 的话就用 &lt;code class=&quot;highlighter-rouge&quot;&gt;os_unfair_lock&lt;/code&gt; 吧。&lt;/li&gt;
+  &lt;li&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;NSLock&lt;/code&gt; 和 &lt;code class=&quot;highlighter-rouge&quot;&gt;pthread_mutex_t&lt;/code&gt; 的性能差不多，并没有因为 &lt;code class=&quot;highlighter-rouge&quot;&gt;pthread_mutex_t&lt;/code&gt; 是下层 api 就更快。&lt;/li&gt;
+  &lt;li&gt;单纯地用 &lt;code class=&quot;highlighter-rouge&quot;&gt;DispatchSemaphore&lt;/code&gt; 甚至是 &lt;code class=&quot;highlighter-rouge&quot;&gt;DispatchQueue.sync&lt;/code&gt; 来实现一个 property 的安全是不合适的，慢太多了，它们应该被用在有更复杂需求的场景。&lt;/li&gt;
+&lt;/ul&gt;</content><author><name></name></author><summary type="html">我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。</summary></entry><entry><title type="html">iOS Libs 与 Frameworks 的理解和使用</title><link href="/ios/foundation/2017/03/01/ios-libs-and-frameworks.html" rel="alternate" type="text/html" title="iOS Libs 与 Frameworks 的理解和使用" /><published>2017-03-01T00:25:05+09:00</published><updated>2017-03-01T00:25:05+09:00</updated><id>/ios/foundation/2017/03/01/ios-libs-and-frameworks</id><content type="html" xml:base="/ios/foundation/2017/03/01/ios-libs-and-frameworks.html">&lt;p&gt;(also posted on &lt;a href=&quot;http://mobilists.eleme.io/2017/02/28/iOS-Libs-与-Frameworks-的理解和使用/&quot;&gt;饿了么移动组 Blog&lt;/a&gt;)&lt;/p&gt;
 
 &lt;p&gt;本文将从两个角度——理论与实践，来介绍 iOS 开发中接触到的动态库、静态库、framework。理论部分会以简单的例子来建立对概念的理解；实践部分则是使用 cocoapods 的一些技巧。&lt;/p&gt;
 

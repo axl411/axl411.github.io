@@ -3,19 +3,19 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1"><!-- Begin Jekyll SEO tag v2.5.0 -->
-<title>封装一个 Thread Safe 的 Property | axl411</title>
+<title>Swift 下各种 Locking Mechanism 的封装及性能比较 | axl411</title>
 <meta name="generator" content="Jekyll v3.8.4" />
-<meta property="og:title" content="封装一个 Thread Safe 的 Property" />
+<meta property="og:title" content="Swift 下各种 Locking Mechanism 的封装及性能比较" />
 <meta property="og:locale" content="en_US" />
 <meta name="description" content="我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。" />
 <meta property="og:description" content="我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。" />
-<link rel="canonical" href="/swift/ios/concurrency/2018/10/12/thread-safe-property-utility.html" />
-<meta property="og:url" content="/swift/ios/concurrency/2018/10/12/thread-safe-property-utility.html" />
+<link rel="canonical" href="/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison.html" />
+<meta property="og:url" content="/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison.html" />
 <meta property="og:site_name" content="axl411" />
 <meta property="og:type" content="article" />
 <meta property="article:published_time" content="2018-10-12T12:17:05+09:00" />
 <script type="application/ld+json">
-{"url":"/swift/ios/concurrency/2018/10/12/thread-safe-property-utility.html","headline":"封装一个 Thread Safe 的 Property","dateModified":"2018-10-12T12:17:05+09:00","description":"我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。","datePublished":"2018-10-12T12:17:05+09:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/swift/ios/concurrency/2018/10/12/thread-safe-property-utility.html"},"@context":"http://schema.org"}</script>
+{"url":"/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison.html","headline":"Swift 下各种 Locking Mechanism 的封装及性能比较","dateModified":"2018-10-12T12:17:05+09:00","description":"我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。","datePublished":"2018-10-12T12:17:05+09:00","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison.html"},"@context":"http://schema.org"}</script>
 <!-- End Jekyll SEO tag -->
 <link rel="stylesheet" href="/assets/main.css"><link type="application/atom+xml" rel="alternate" href="/feed.xml" title="axl411" /></head>
 <body><header class="site-header" role="banner">
@@ -38,7 +38,7 @@
         <article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
 
   <header class="post-header">
-    <h1 class="post-title p-name" itemprop="name headline">封装一个 Thread Safe 的 Property</h1>
+    <h1 class="post-title p-name" itemprop="name headline">Swift 下各种 Locking Mechanism 的封装及性能比较</h1>
     <p class="post-meta">
       <time class="dt-published" datetime="2018-10-12T12:17:05+09:00" itemprop="datePublished">Oct 12, 2018
       </time></p>
@@ -47,7 +47,9 @@
   <div class="post-content e-content" itemprop="articleBody">
     <p>我们来尝试封装一个 utility，目标是能够轻松地为已有的 property 加上线程安全。</p>
 
-<p>首先封装一下 lock api：</p>
+<h1 id="封装-lock-api">封装 Lock api</h1>
+
+<p>首先封装一下 lock api，以 unfair lock 为例：</p>
 
 <div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">UnfairLock</span> <span class="p">{</span>
     <span class="kd">private</span> <span class="k">var</span> <span class="nv">unfairLock</span> <span class="o">=</span> <span class="nf">os_unfair_lock</span><span class="p">()</span>
@@ -72,6 +74,8 @@
 <span class="k">defer</span> <span class="p">{</span> <span class="n">lock</span><span class="o">.</span><span class="nf">unlock</span><span class="p">()</span> <span class="p">}</span>
 <span class="c1">// do critical things safely</span>
 </code></pre></div></div>
+
+<h1 id="封装线程安全的-property">封装线程安全的 property</h1>
 
 <p>然后，我们进一步地封装一个 <code class="highlighter-rouge">LockedPropertyWrapper</code>：</p>
 
@@ -138,9 +142,85 @@
 <span class="p">}</span>
 </code></pre></div></div>
 
-<p>这样，我们就能像普通的 property 一样去使用我们的线程安全的 property 了。</p>
+<p>这样，我们就能像普通的 property 一样去使用它了。</p>
 
-  </div><a class="u-url" href="/swift/ios/concurrency/2018/10/12/thread-safe-property-utility.html" hidden></a>
+<p>⚠️ 需要注意的是，我们的 <code class="highlighter-rouge">LockedPropertyWrapper.value</code> 以及 <code class="highlighter-rouge">myProperty</code> 实现的只是 atomic，对它们的操作并不能保证线程安全。例如，从多个线程同时执行 <code class="highlighter-rouge">myProperty += 1</code> 是线程不安全的，因为这实际上是两个操作：读和写。要确保线程安全，还是需要用 <code class="highlighter-rouge">setValue(_:)</code> 或者 <code class="highlighter-rouge">mutateValue(_:)</code></p>
+
+<h1 id="其他各种-locking-mechanism-的封装">其他各种 locking mechanism 的封装</h1>
+
+<p>用上文同样的思路我们可以封装其他 lock 的 api 如下：</p>
+
+<div class="language-swift highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">Lock</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">nsLock</span> <span class="o">=</span> <span class="kt">NSLock</span><span class="p">()</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">lock</span><span class="p">()</span> <span class="p">{</span> <span class="n">nsLock</span><span class="o">.</span><span class="nf">lock</span><span class="p">()</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">unlock</span><span class="p">()</span> <span class="p">{</span> <span class="n">nsLock</span><span class="o">.</span><span class="nf">unlock</span><span class="p">()</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">RecrusiveLock</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">nsLock</span> <span class="o">=</span> <span class="kt">NSRecursiveLock</span><span class="p">()</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">lock</span><span class="p">()</span> <span class="p">{</span> <span class="n">nsLock</span><span class="o">.</span><span class="nf">lock</span><span class="p">()</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">unlock</span><span class="p">()</span> <span class="p">{</span> <span class="n">nsLock</span><span class="o">.</span><span class="nf">unlock</span><span class="p">()</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">MutexLock</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">var</span> <span class="nv">mutexLock</span><span class="p">:</span> <span class="n">pthread_mutex_t</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="k">var</span> <span class="nv">mutex</span> <span class="o">=</span> <span class="nf">pthread_mutex_t</span><span class="p">()</span>
+        <span class="nf">pthread_mutex_init</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutex</span><span class="p">,</span> <span class="kc">nil</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mutex</span>
+    <span class="p">}()</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">lock</span><span class="p">()</span> <span class="p">{</span> <span class="nf">pthread_mutex_lock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutexLock</span><span class="p">)</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">unlock</span><span class="p">()</span> <span class="p">{</span> <span class="nf">pthread_mutex_unlock</span><span class="p">(</span><span class="o">&amp;</span><span class="n">mutexLock</span><span class="p">)</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">ObjcSyncLock</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">obj</span> <span class="o">=</span> <span class="kt">NSObject</span><span class="p">()</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">lock</span><span class="p">()</span> <span class="p">{</span> <span class="nf">objc_sync_enter</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">unlock</span><span class="p">()</span> <span class="p">{</span> <span class="nf">objc_sync_exit</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="kd">public</span> <span class="kd">final</span> <span class="kd">class</span> <span class="kt">SemaphoreLock</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="k">let</span> <span class="nv">sem</span> <span class="o">=</span> <span class="kt">DispatchSemaphore</span><span class="p">(</span><span class="nv">value</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">lock</span><span class="p">()</span> <span class="p">{</span> <span class="n">sem</span><span class="o">.</span><span class="nf">wait</span><span class="p">()</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="kd">func</span> <span class="nf">unlock</span><span class="p">()</span> <span class="p">{</span> <span class="n">sem</span><span class="o">.</span><span class="nf">signal</span><span class="p">()</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>当然我们还可以用 <code class="highlighter-rouge">DispatchQueue</code> 的 <code class="highlighter-rouge">sync</code> 来实现 locking。</p>
+
+<h1 id="各种-locking-mechanism-的性能比较">各种 locking mechanism 的性能比较</h1>
+
+<p>我准备了<a href="https://github.com/axl411/LockingMethodsComparison">一段代码</a>来测试各种 locking mechanism 的性能，方式是用3个线程同时对一个线程安全的 counter 增1 各300000次。测试结果如下：</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>+++++ UnfairLock +++++
+    ✅ elapsed time: 0.43625009059906006
+
++++++ ObjcSyncLock +++++
+    ✅ elapsed time: 0.45990192890167236
+
++++++ MutexLock +++++
+    ✅ elapsed time: 1.0517339706420898
+
++++++ Lock +++++
+    ✅ elapsed time: 1.0154080390930176
+
++++++ RecrusiveLock +++++
+    ✅ elapsed time: 1.3077090978622437
+
++++++ SemaphoreLock +++++
+    ✅ elapsed time: 5.190653085708618
+
++++++ SyncQueue +++++
+    ✅ elapsed time: 7.316784024238586
+</code></pre></div></div>
+
+<p>结论：</p>
+<ul>
+  <li>能用 <code class="highlighter-rouge">os_unfair_lock</code> 的话就用 <code class="highlighter-rouge">os_unfair_lock</code> 吧。</li>
+  <li><code class="highlighter-rouge">NSLock</code> 和 <code class="highlighter-rouge">pthread_mutex_t</code> 的性能差不多，并没有因为 <code class="highlighter-rouge">pthread_mutex_t</code> 是下层 api 就更快。</li>
+  <li>单纯地用 <code class="highlighter-rouge">DispatchSemaphore</code> 甚至是 <code class="highlighter-rouge">DispatchQueue.sync</code> 来实现一个 property 的安全是不合适的，慢太多了，它们应该被用在有更复杂需求的场景。</li>
+</ul>
+
+  </div><a class="u-url" href="/swift/ios/concurrency/2018/10/12/swift-locking-abstraction-and-performance-comparison.html" hidden></a>
 </article>
 
       </div>
