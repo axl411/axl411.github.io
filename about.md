@@ -4,4 +4,6 @@ title: About
 permalink: /about/
 ---
 
-blabla...
+iOS developer. Gamer.
+
+Currently working at [LINE](https://linecorp.com/en/).
