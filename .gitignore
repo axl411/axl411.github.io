@@ -1,12 +1,12 @@
-### https://raw.github.com/github/gitignore/967cd6479319efde70a6fa44fa1bfa02020f2357/Jekyll.gitignore
+### https://raw.github.com/github/gitignore/218a941be92679ce67d0484547e3e142b2f5f6f0/Jekyll.gitignore
 
-# _site/
+_site/
 .sass-cache/
 .jekyll-cache/
 .jekyll-metadata
 
 
-### https://raw.github.com/github/gitignore/967cd6479319efde70a6fa44fa1bfa02020f2357/Ruby.gitignore
+### https://raw.github.com/github/gitignore/218a941be92679ce67d0484547e3e142b2f5f6f0/Ruby.gitignore
 
 *.gem
 *.rbc
@@ -22,6 +22,9 @@
 
 # Used by dotenv library to load environment variables.
 # .env
+
+# Ignore Byebug command history file.
+.byebug_history
 
 ## Specific to RubyMotion:
 .dat*
@@ -58,5 +61,8 @@ build-iPhoneSimulator/
 
 # unless supporting rvm < 1.11.0 or doing something fancy, ignore this:
 .rvmrc
+
+# Used by RuboCop. Remote config files pulled in from inherit_from directive.
+# .rubocop-https?--*
 
 
