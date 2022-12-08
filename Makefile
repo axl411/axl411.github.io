@@ -1,7 +1,7 @@
-update:
+update: # update jekyll version
 	gem install bundler
 	bundle install
-	bundle exec bundle update
+	bundle update
 
 start:
 	bundle exec jekyll serve
